@@ -1,11 +1,10 @@
 # {{PRODUCT}} — Ürün incelemesi
 
-Durum: Planlandı; henüz analiz yapılmadı.
-
 - Hedef: {{TARGET}}
-- İnceleme tarihi / ürün sürümü: Henüz belirlenmedi
-- REA sürümü / kullanılan araçlar: Henüz çalıştırılmadı
-- Kapsam ve erişim: Henüz belirlenmedi
+- İnceleme tarihi ve ürün sürümü
+- Hedef kullanıcı, senaryo ve verilecek karar
+- Cihaz, paket, erişim ve kapsam
+- Kullanılan araçlar ve varsa REA sürümü
 
 ## Araştırma soruları
 
@@ -13,8 +12,8 @@ Durum: Planlandı; henüz analiz yapılmadı.
 
 ## Karar özeti
 
-Analizden sonra: Ürün neyi iyi çözüyor, hangi mekanizma önemli, kendi ürünümüz
-için hangi yaklaşım denenmeli? İncelenmeyen alanlar açıkça yazılacak.
+Ürün neyi iyi çözüyor? Önerilen karar, onu destekleyen bulgular ve kararı
+değiştirebilecek belirsizlikler neler?
 
 ## Kullanıcı akışı
 
@@ -23,25 +22,31 @@ Akışın gözlemlenen ve yalnızca tahmin edilen kısımlarını ayır.
 
 ## Bulgular ve kanıtlar
 
-| ID | Bulgu | Tür | Kaynak / Evidence ID | Güven ve sınır |
-| --- | --- | --- | --- | --- |
-| — | Henüz bulgu yok | Bilinmiyor | — | — |
+| ID | Bulgu | Tür | Kaynak / Evidence ID | Tarih veya sürüm | Güven ve sınır |
+| --- | --- | --- | --- | --- | --- |
+| — | Henüz bulgu yok | Bilinmiyor | — | — | — |
 
-Tür: Gözlem, türetim, çıkarım veya bilinmiyor. Bir dosya adı ya da framework
-tespiti tek başına ürünün çalışma biçimini kanıtlamaz.
+Türü gözlem, türetim, çıkarım veya bilinmiyor olarak işaretle. Kaynağın
+kendi iddiasını, ölçülen veya gözlemlenen sonuçtan ayır.
 
 ## Teknik mekanizma
 
 Arayüz, istemci durumu, ağ/API etkileşimi, veri modeli ve entegrasyonlar.
 İstemciden görünmeyen sunucu ayrıntıları bilinmiyor olarak kalır.
 
-## Ürün değerlendirmesi
+## Ürün değerlendirmesi · Rubrik v1
 
-- Hedef kullanıcı ve çözülen iş:
-- İlk değer anı ve onboarding:
-- Ana akıştaki sürtünmeler / hata durumları:
-- Ayrışan özellik ve alternatiflerle fark:
-- Fiyat / paket sınırları (tarih ve resmî kaynakla):
+Puan için `1–5`, `Bilinmiyor` veya `Kapsam dışı` kullan.
+
+| Boyut | Puan | Güven | Bulgu ID | Gerekçe veya açık soru |
+| --- | --- | --- | --- | --- |
+| Problem ve hedef kullanıcı | — | — | — | — |
+| İlk değer ve onboarding | — | — | — | — |
+| Ana iş akışı ve hata yönetimi | — | — | — | — |
+| Ayrışma ve alternatifler | — | — | — | — |
+| Teknik kalite ve entegrasyon | — | — | — | — |
+| Güven ve veri kontrolü | — | — | — | — |
+| Fiyat ve kullanım maliyeti | — | — | — | — |
 
 ## Uygulanabilir dersler
 
@@ -56,6 +61,6 @@ her açık soru için sonraki somut doğrulama adımı.
 
 ## Yeniden üretim
 
-Kullanılan komutlar, hedef sürümü/hash'i, oturum ve evidence dosyalarının
-göreli yolları. Oturum kimlikleri tek başına kalıcı kanıt değildir; gerekli
-REA bundle'ını `evidence/` altına dışa aktar.
+Kullanılan komutlar, tarih, hedef sürümü veya dosya özeti ve kanıtların
+göreli yolları. Gerekli REA çıktısını oturum kapanmadan `evidence/` altına
+dışa aktar.

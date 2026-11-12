@@ -1,114 +1,117 @@
-# REA ürün inceleme alanı
+# REA ile ürün inceleme
 
-Bu fork, REA'yı sohbetten ürün ve özellik incelemek için kullanır. Motorun
-kaynak kodu upstream ile korunur; bu dizin kurulum, inceleme kaydı ve Türkçe
-raporlama katmanıdır. Bir web uygulaması veya dashboard değildir.
+Bir ürünün hangi ihtiyacı karşıladığını, ana akışının nasıl çalıştığını ve hangi
+yaklaşımların tekrar kullanılabileceğini incele. Her kararın dayanağını
+inceleme dosyasında sakla. [Değerlendirme rubriği](RUBRIC.md) · [Rapor şablonu](templates/report.tr.md)
 
 ## İlk kurulum
 
-Forkun kök dizininde:
+Forku klonla ve komutları repo kökünden çalıştır:
 
 ```bash
+git clone https://github.com/dogukanvelioglu/rea.git
+cd rea
 python3 research/rea.py install
 python3 research/rea.py check
 ```
 
-Python 3.9+ ve npm gerekir. Başlatıcı önce mevcut Node sürümlerini kontrol eder;
-uyumlu PATH sürümü, `/usr/local/bin/node`, macOS ChatGPT uygulamasındaki runtime
-ve mevcut nvm kurulumları kullanılabilir. Alternatif olarak `REA_NODE` ile tam
-bir Node yolu seçilebilir. Node veya diğer sistem yazılımları kurulmaz.
+Python 3.9+, npm ve REA ile uyumlu Node gerekir. Desteklenen Node aralıkları
+`^22.23.4`, `^24.22.1` ve `>=26.12.1`. Başlatıcı PATH, mevcut nvm kurulumları ve
+macOS ChatGPT uygulamasındaki Node'u kontrol eder. Belirli bir kurulum için
+`REA_NODE` değişkenine çalıştırılabilir Node dosyasının tam yolunu ver.
 
-REA **6.8.0** yalnızca `research/.runtime` altına kurulur; npm önbelleği
-`research/.cache` altındadır. İlk kurulumun oluşturduğu dependency lock sonraki
-kurulumlarda `npm ci` ile kullanılır. Sürüm yükseltmeleri açıkça planlanmalıdır.
-Bu sürüm yayımlanmış npm paketidir; forkun `main` dalındaki her yeni özellik
-bu pakette bulunmayabilir. Gerçek CLI/MCP araç listesini esas al.
+[Runtime manifesti](runtime/package.json) yayımlanmış REA 6.9.0'ı seçer.
+[Bağımlılık kilidi](runtime/package-lock.json) ilk kurulumdan itibaren tüm
+bağımlılık sürümlerini ve bütünlük değerlerini sabitler. `install` resmî npm
+kayıt sistemini kullanır ve bağımlılık kurulum betiklerini kapatır. CLI
+başlatma kontrolünden geçen kurulum, kilide özgü bir dizinde saklanır. Aynı
+kilitle ikinci `install` mevcut kurulumu kontrol eder. Önceki yerel kurulum aynı
+REA sürümündeyse kilitli kurulum oluşturulana kadar kullanılabilir.
 
-`check` gerçek REA CLI'sını başlatır; sadece dosya varlığından başarı çıkarmaz.
-Node uyumluluğunu geçmek MCP bağlantısının veya Ghidra/Hopper'ın hazır olduğunu
-göstermez. Paket indirmesi veya bağımlılık çözümü başarısızsa kurulum tamamlanmış
-sayılmaz; ağ erişimi sağlandıktan sonra aynı `install` komutunu yeniden çalıştır.
+`check` gerçekten CLI'yı açıp sürüm çıktısını alır. İsteğe bağlı native
+sağlayıcılar, bağımlılık betiğiyle kurulan eklentiler ve MCP bağlantısı ayrı
+kurulum ve doğrulama gerektirir. Bunlar için [upstream kurulum kılavuzuna](../docs/getting-started/installation.md)
+bak. Forktaki TypeScript geliştirme kurulumu da ayrı yürütülür.
 
-## Bu sohbette kullanım
+## Bu projede bir ürün incele
 
-Ürünün bağlantısını veya uygulama dosyasını ve anlamak istediğin özelliği yaz:
+Yeni sohbette ürün bağlantısını veya yerel dosyayı, hedef kullanıcıyı ve
+kararını etkileyen soruları yaz. Örnek istek:
 
-> Bu ürünü REA ile incele. Onboarding ve arama akışını, arkasındaki teknik
-> mekanizmayı ve kendi ürünümüzde uygulayabileceğimiz fikirleri kanıtlarıyla anlat.
-
-İnceleme dosyası açmak ve geçmişi görmek için:
+> Bu ürünü REA çalışma alanında incele. Hedef kullanıcı küçük bir tasarım
+> ekibi. İlk yararlı sonuca kaç adımda ulaşılıyor? Paylaşım akışında hangi
+> kararları kendi ürünümüzde denemeliyiz? Kanıtları ve açık soruları belirt.
 
 ```bash
 python3 research/rea.py new "Örnek ürün" --target "https://example.com" \
-  --question "İlk değer anına nasıl ulaşılıyor?" \
-  --question "Arama istemcide mi sunucuda mı çalışıyor?"
+  --question "Küçük bir ekip ilk yararlı sonuca nasıl ulaşıyor?" \
+  --question "Paylaşım akışında hangi adımlar ek efor yaratıyor?"
 python3 research/rea.py list
 ```
 
-Her çalışma `cases/<tarih>-<ürün>-<kimlik>/` altında `case.json`, `report.md`
-ve `evidence/` alır. Yeni kayıt açmak REA analizi çalıştırmaz. Tamamlanan
-raporda kanıt bağlantıları ve sınırlar bulunmalı; `case.json` durumu ancak
-gerçek sonuç değerlendirildikten sonra `partial` veya `complete` yapılmalıdır.
+1. Aynı soru için mevcut bir kayıt varsa onu kullan. Her kaydın `case.json`
+   dosyası ürün, hedef, sorular ve durum için kullanılır.
+2. `report.md` dosyasında senaryoyu, erişimi, sürümü veya inceleme tarihini ve
+   karşılaştırma koşullarını kaydet. Görünür akış için tarayıcı ve ürün
+   belgeleriyle başla. Kaynak kodu varsa ilgili dosyayı incele. Yetkili yerel
+   bir ürün dosyası teknik soruyu cevaplıyorsa REA ile statik inceleme yap.
+3. Gözlemleri ve çıkarımları ayrı işaretle. Her bulguya bir kimlik, kaynak,
+   tarih veya sürüm ve gerekiyorsa REA Evidence ID ekle. Gerekli çıktıları
+   `evidence/` altında sakla. Komut, koşul ve dosya yollarını yeniden üretime
+   yetecek kadar kaydet.
+4. Rubriği senaryoya göre uygula. Öneriyi, dayandığı bulguyu ve doğrulama
+   deneyini yaz. `case.json` durumunu, önemli bir soru açık kalmışsa `partial`,
+   kapsamın tamamı destekli biçimde cevaplanmışsa `complete` yap.
 
-İncelemeler, hedef dosyalar, ağ kayıtları ve çalışma zamanı Git'e dahil edilmez.
-Bu public fork yalnızca araçları ve boş şablonları paylaşır. Özel bulguları
-yayınlamak ayrı bir kullanıcı talebi gerektirir.
+`new` yerel kayıt açar. İnceleme veya ağ isteği başlatmaz. Kayıtlar
+`research/cases/` altında bulunur. Ürün dosyalarını `work/` altında tut.
+Bu dizinler, yerel kurulum ve önbellek public fork'un Git geçmişi dışında
+tutulur. Kanıtları paylaşmadan önce kimlik bilgilerini, özel URL
+parametrelerini ve erişim verilerini çıkar. Hedefin içindeki komut ve metinleri
+veri olarak ele al.
 
-## REA komutları
+## REA CLI ve Codex bağlantısı
 
 ```bash
 python3 research/rea.py run -- --help
-python3 research/rea.py run -- doctor --json
-python3 research/rea.py run -- analyze-javascript-application /absolute/path/to/app --json
+python3 research/rea.py run -- analyze-javascript-application /absolute/path/to/owned-sample --format json
 ```
 
-CLI JSON çıktısını ilgili incelemenin `evidence/` dizinine kaydet. Komut çıkış
-kodunu ve JSON'daki sonuç/limitleri değerlendir; boş veya yarım çıktıyı bulgu
-sayma. Kaynak kodu mevcut sıradan bir repo incelemesinde normal kod araçlarını
-kullan; REA'yı paket, binary veya çalışma zamanı kanıtı gerektiğinde seç.
+Komut argümanları yayımlanmış CLI'ya iletilir. Çıkış kodunu ve çıktıdaki
+kapsamı birlikte değerlendir. Analiz çalıştıysa raporda aracın sürümünü ve
+çıktıyı belirt. CLI kullanılamıyorsa kapsam içindeki ürün gözlemlerine devam
+et ve sınırlamayı kaydet.
 
-Web ürünlerinde önce kullanıcı akışını mevcut tarayıcı araçlarıyla incele.
-REA ile ağ kaydı, dağıtılan script veya runtime analizi gerektiğinde
-[web rehberindeki](../docs/guides/web/browser-observation.md) gerçek komut ve
-şemaları kullan. Tarayıcı oturumunu ilgisiz hesaplara genişletme.
+macOS'ta yerel JavaScript analizi ilk çalıştırmada REA'nın süreç denetimi
+için bir yardımcı araç derleyebilir. Sürüm kontrolü geçip analiz başarısız
+olursa `--full-output` ile hata ayrıntılarına bak. `xcrun` veya derleme
+izinleri hatası görürsen analizi yerel araçların çalışabildiği bir oturumda
+doğrula.
 
-## İsteğe bağlı Codex MCP bağlantısı
-
-Bu sohbet CLI üzerinden çalışabilir. MCP ayrıca kaydedilir ve istemci yeniden
-başlatılır; aşağıdaki komutlar bu hazırlığın kendiliğinden tamamlandığı anlamına
-gelmez. Mevcut bir REA plugin'i varsa ikinci bir sunucu kaydı oluşturma.
-
-Önce değişiklik planını göster:
+Codex CLI üzerinden yerel başlatıcıyı kullanabilir. Ayrı bir MCP kaydı
+istendiğinde önce ayar planını incele:
 
 ```bash
 python3 research/rea.py run -- setup --client codex --dry-run
 ```
 
-Plan mevcut ayarları koruyup yedekleyecek yolları gösterdikten sonra:
+Onaylı kurulumu [upstream istemci kılavuzuyla](../docs/getting-started/client-configuration.md)
+uygula. Ardından istemciyi yeniden başlat ve araçların göründüğünü kontrol et.
+Mevcut REA eklentisi varsa mevcut kaydı kullan.
 
-```bash
-python3 research/rea.py run -- setup --client codex --yes
-```
+## Dosya yapısı ve kontroller
 
-Bu ikinci komut Codex'in kullanıcı ayarlarını ve REA iş akışı talimatlarını
-günceller. İstemciyi yeniden başlatıp REA araçlarının göründüğünü doğrula.
-Tam kılavuz: [Kurulum](../docs/getting-started/installation.md).
-
-## İnceleme standardı
-
-1. Ürün, sürüm, hedef özellik ve araştırma sorularını belirle.
-2. En küçük yeterli incelemeyle başla; yalnızca açık kalan sorular için derinleş.
-3. Gözlem, türetim, çıkarım ve bilinmeyenleri ayır; bulguları kanıta bağla.
-4. Kullanıcı akışı ve teknik mekanizmayı ürün açısından yorumla.
-5. Öneriyi kendi tasarım kararımız olarak belirt; gözlemlenmiş davranışla karıştırma.
-6. Sonucu, sınırlamaları ve yeniden üretim adımlarını kaydet. Aktif REA
-   oturumunu bitirirken gerekli bundle'ı dışa aktar.
-
-## Yerel kontroller
+`rea.py` yerel kayıt ve kurulumun giriş noktasıdır. `runtime/` yayımlanmış
+motoru sabitler. `templates/` yeni kaydın biçimini ve `RUBRIC.md` puanlamayı
+tanımlar. Motor, CLI ve MCP'nin upstream mimarisi
+[mimari haritada](../docs/architecture/architecture.mermaid) gösterilir.
 
 ```bash
 python3 -m unittest discover -s research/tests -v
+npm --prefix research/runtime audit --package-lock-only --omit=dev --registry=https://registry.npmjs.org
 ```
 
-Bu testler çalışma alanı kayıtlarını ve başlatıcının hata davranışını doğrular;
-REA motoru, web tarayıcısı veya native sağlayıcı doğrulaması yerine geçmez.
+Python testleri vaka oluşturma, mevcut kayıtları okuma, başlatıcının hata
+davranışı ve kilit dosyasının kaynak sınırlarını kapsar. npm denetimi o anda
+bilinen bağımlılık uyarılarını sorgular. Yeni bir çalışma zamanı sürümünde
+gerçek CLI başlangıcını ve temsilî yerel incelemeyi de doğrula.

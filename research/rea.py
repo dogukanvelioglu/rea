@@ -2,6 +2,8 @@
 """Local REA launcher and private product investigation workspace (stdlib only)."""
 
 import argparse
+from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -9,15 +11,16 @@ import re
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+import tempfile
 import unicodedata
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parent
-VERSION = "6.8.0"
 RUNTIME = ROOT / ".runtime"
-PACKAGE = RUNTIME / "node_modules" / "rea-agents"
+RUNTIME_SOURCE = ROOT / "runtime"
+PACKAGE_PATH = Path("node_modules/rea-agents")
 CASES = ROOT / "cases"
+DEFAULT_QUESTION = "Ürünün ana kullanıcı akışı nasıl çalışıyor?"
 
 
 def supported(version):
@@ -52,55 +55,86 @@ def select_node():
                        "23 ve 25 desteklenmez. Mevcut bir sürümü REA_NODE ile seçebilirsin.")
 
 
-def rea_command():
-    node, _ = select_node()
-    manifest = PACKAGE / "package.json"
+def runtime_pin():
+    manifest = json.loads((RUNTIME_SOURCE / "package.json").read_text(encoding="utf-8"))
+    version = manifest["dependencies"]["rea-agents"]
+    lock = (RUNTIME_SOURCE / "package-lock.json").read_bytes()
+    destination = RUNTIME / hashlib.sha256(lock).hexdigest()
+    return version, lock, destination
+
+
+def package_command(node, package, version):
+    manifest = package / "package.json"
     if not manifest.is_file():
         raise RuntimeError("REA kurulmamış. Önce: python3 research/rea.py install")
-    data = json.loads(manifest.read_text())
-    if data.get("name") != "rea-agents" or data.get("version") != VERSION:
-        raise RuntimeError(f"Beklenen paket rea-agents@{VERSION}; kurulu paket farklı.")
-    entry = PACKAGE / "scripts/rea.mjs"
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    if data.get("name") != "rea-agents" or data.get("version") != version:
+        raise RuntimeError(f"Beklenen paket rea-agents@{version}; kurulu paket farklı.")
+    entry = package / "scripts/rea.mjs"
     if not entry.is_file():
         raise RuntimeError("REA giriş dosyası eksik; kurulumu tekrar çalıştır.")
     return [node, str(entry)]
 
 
+def rea_command(node=None):
+    if node is None:
+        node, _ = select_node()
+    version, _, destination = runtime_pin()
+    # Existing checkouts can still use the same-version installation at its old path.
+    runtime = destination if destination.exists() else RUNTIME
+    return package_command(node, runtime / PACKAGE_PATH, version)
+
+
+def probe(command):
+    result = subprocess.run([*command, "--version", "--json"], timeout=30, check=False)
+    if result.returncode == 0:
+        print("REA CLI başlatıldı. MCP kaydı ve analiz sağlayıcıları ayrı kontroller gerektirir.")
+    return result.returncode
+
+
 def install():
-    node, version = select_node()
+    node, node_version = select_node()
+    version, lock, destination = runtime_pin()
+    if destination.exists():
+        return probe(package_command(node, destination / PACKAGE_PATH, version))
+
     npm = shutil.which("npm")
     if npm is None:
         raise RuntimeError("npm bulunamadı; mevcut Node kurulumunun npm komutunu PATH'e ekle.")
     RUNTIME.mkdir(parents=True, exist_ok=True)
-    manifest = RUNTIME / "package.json"
-    desired = {"name": "rea-research-runtime", "private": True,
-               "dependencies": {"rea-agents": VERSION}}
-    if manifest.exists() and json.loads(manifest.read_text()) != desired:
-        raise RuntimeError("Yerel runtime package.json farklı; mevcut yapılandırma korundu.")
-    if not manifest.exists():
-        with manifest.open("x") as stream:
-            json.dump(desired, stream, indent=2)
-            stream.write("\n")
     env = os.environ.copy()
     env["PATH"] = str(Path(node).parent) + os.pathsep + env.get("PATH", "")
-    print(f"REA {VERSION} kuruluyor; {node} ({version}).", flush=True)
-    # Reuse the exact dependency lock on subsequent runs. All writes stay local.
-    operation = "ci" if (RUNTIME / "package-lock.json").is_file() else "install"
-    result = subprocess.run([node, str(Path(npm).resolve()), operation, "--omit=dev",
-                             "--no-audit", "--no-fund", "--cache", str(ROOT / ".cache/npm")],
-                            cwd=RUNTIME, env=env, check=False)
-    if result.returncode:
-        return result.returncode
-    return check()
+    print(f"REA {version} kuruluyor. Node: {node_version} ({node})", flush=True)
+    with tempfile.TemporaryDirectory(prefix=".install-", dir=RUNTIME) as temp:
+        staging = Path(temp) / "runtime"
+        staging.mkdir()
+        shutil.copyfile(RUNTIME_SOURCE / "package.json", staging / "package.json")
+        (staging / "package-lock.json").write_bytes(lock)
+        result = subprocess.run(
+            [node, str(Path(npm).resolve()), "ci", "--omit=dev", "--ignore-scripts",
+             "--engine-strict", "--registry=https://registry.npmjs.org", "--no-audit",
+             "--no-fund", "--cache", str(ROOT / ".cache/npm")],
+            cwd=staging, env=env, check=False,
+        )
+        if result.returncode:
+            return result.returncode
+        result = probe(package_command(node, staging / PACKAGE_PATH, version))
+        if result:
+            return result
+        try:
+            staging.rename(destination)
+        except OSError:
+            if not destination.is_dir():
+                raise
+            # Another successful installation may already have published this lock.
+            return probe(package_command(node, destination / PACKAGE_PATH, version))
+    return 0
 
 
 def check():
     node, version = select_node()
     print(f"Node: {version} ({node})", flush=True)
-    result = subprocess.run([*rea_command(), "--version", "--json"], check=False)
-    if result.returncode == 0:
-        print("REA CLI başlatıldı. Bu kontrol MCP kaydını veya analiz motorlarını doğrulamaz.")
-    return result.returncode
+    return probe(rea_command(node))
 
 
 def slug(text):
@@ -109,23 +143,39 @@ def slug(text):
     return re.sub(r"[^a-z0-9]+", "-", text).strip("-")[:64] or "urun"
 
 
+def markdown_text(text):
+    single_line = " ".join(text.splitlines()).strip()
+    return re.sub(r'([\\`*_{}\[\]<>|~])', r'\\\1', single_line)
+
+
 def new_case(name, target, questions, root=CASES):
     if not name.strip() or not target.strip():
         raise ValueError("Ürün adı ve hedef boş olamaz.")
+    questions = [question for question in questions if question.strip()] or [DEFAULT_QUESTION]
+    fields = {
+        "PRODUCT": markdown_text(name),
+        "TARGET": markdown_text(target),
+        "QUESTIONS": "\n".join(f"- [ ] {markdown_text(question)}" for question in questions),
+    }
+    template = (ROOT / "templates/report.tr.md").read_text(encoding="utf-8")
+    report = re.sub(r"\{\{(PRODUCT|TARGET|QUESTIONS)\}\}", lambda match: fields[match[1]], template)
     stamp = datetime.now(timezone.utc)
     case_id = f"{stamp:%Y%m%d}-{slug(name)}-{uuid4().hex[:8]}"
     directory = root / case_id
-    directory.mkdir(parents=True, exist_ok=False)
-    (directory / "evidence").mkdir()
     record = {"schema_version": 1, "id": case_id, "product": name, "target": target,
               "created_at": stamp.isoformat(), "status": "planned",
               "questions": questions, "rea_version": None, "limitations": []}
-    (directory / "case.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")
-    report = (ROOT / "templates/report.tr.md").read_text()
-    report = report.replace("{{PRODUCT}}", name).replace("{{TARGET}}", target)
-    report = report.replace("{{QUESTIONS}}", "\n".join(f"- [ ] {q}" for q in questions) or
-                            "- [ ] Ürünün ana kullanıcı akışı nasıl çalışıyor?")
-    (directory / "report.md").write_text(report)
+    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    directory.mkdir(mode=0o700)
+    try:
+        (directory / "evidence").mkdir()
+        (directory / "report.md").write_text(report, encoding="utf-8")
+        (directory / "case.json").write_text(
+            json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+    except OSError:
+        shutil.rmtree(directory)
+        raise
     print(directory)
     return directory
 
@@ -134,7 +184,7 @@ def list_cases(root=CASES):
     records = []
     for path in sorted(root.glob("*/case.json")):
         try:
-            data = json.loads(path.read_text())
+            data = json.loads(path.read_text(encoding="utf-8"))
             if not isinstance(data, dict) or not all(
                 isinstance(data.get(field), str) for field in ("product", "status")
             ):

@@ -1,3 +1,30 @@
+# Product research workspace (this fork)
+
+This fork is used from a chat to examine products with REA. Read
+[research/README.md](research/README.md) for the local launcher and report format.
+
+- Respond in Turkish unless the user requests another language.
+- Start from the user's product and question. Use normal source tools for a source
+  repository, browser tools for visible UX, and REA for shipped-artifact or runtime
+  evidence. Never claim the engine ran when only source or documentation was read.
+- Use `python3 research/rea.py new NAME --target TARGET --question QUESTION`
+  for each new investigation; reuse an existing matching case for follow-ups.
+- Use `python3 research/rea.py run -- <REA arguments>` for the pinned CLI.
+  If missing, run `check`, diagnose the specific blocker, and do not repeat an
+  unchanged failed installation. MCP registration is separate from CLI readiness.
+- Capture findings, Evidence IDs, source paths, limitations, and open questions in
+  the case report. Distinguish observations, derivations, inferences, and unknowns.
+  Mark a case complete only after reviewing every requested question.
+- Summarize product behavior, technical mechanism, reusable ideas, and verification
+  steps. Preserve the full evidence separately from the concise chat answer.
+- Case folders, target artifacts, network captures, local caches, and runtimes are
+  private working data ignored by Git. Never commit them to this public fork
+  without an explicit publication request. Only tooling and empty templates belong here.
+- Do not silently install native engines or register other agent clients. Preserve
+  existing configuration. The original development guidelines below still apply.
+
+---
+
 # Repository Guidelines
 
 ## Product and Authority

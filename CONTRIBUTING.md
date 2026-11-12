@@ -2,6 +2,23 @@
 
 REA welcomes focused bug fixes, documentation improvements, tests, and reverse-engineering workflows. For large contract or architecture changes, explain the intended scope and link the relevant issue or design discussion.
 
+## Product review workspace
+
+The fork's [product review workspace](research/README.md) owns case creation,
+the pinned published CLI, and the [rubric](research/RUBRIC.md). Keep its changes
+under `research/` when practical. Changes to the upstream engine and its
+contracts follow the development and verification guidance below.
+
+- Use synthetic products and inputs in committed fixtures. Keep actual
+  evaluations, target files, and raw evidence in the ignored local folders.
+- Run `python3 -m unittest discover -s research/tests -v`. For launcher changes,
+  also run `install` and `check` against the real package and report the scope.
+- Update the runtime manifest and lock together. Use the official registry,
+  run the dependency audit shown in the workspace guide, and verify the
+  CLI against a local sample before sharing an upgrade.
+- Explain rubric changes in the PR. When changing score semantics, version
+  the rubric so earlier reports can still be interpreted and compared.
+
 ## Choosing a contribution
 
 Explain the concrete problem, keep related corrections together, and report

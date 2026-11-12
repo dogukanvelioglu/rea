@@ -22,9 +22,9 @@ Akışın gözlemlenen ve yalnızca tahmin edilen kısımlarını ayır.
 
 ## Bulgular ve kanıtlar
 
-| ID | Bulgu | Tür | Kaynak / Evidence ID | Tarih veya sürüm | Güven ve sınır |
-| --- | --- | --- | --- | --- | --- |
-| — | Henüz bulgu yok | Bilinmiyor | — | — | — |
+| ID  | Bulgu           | Tür        | Kaynak / Evidence ID | Tarih veya sürüm | Güven ve sınır |
+| --- | --------------- | ---------- | -------------------- | ---------------- | -------------- |
+| —   | Henüz bulgu yok | Bilinmiyor | —                    | —                | —              |
 
 Türü gözlem, türetim, çıkarım veya bilinmiyor olarak işaretle. Kaynağın
 kendi iddiasını, ölçülen veya gözlemlenen sonuçtan ayır.
@@ -38,21 +38,21 @@ Arayüz, istemci durumu, ağ/API etkileşimi, veri modeli ve entegrasyonlar.
 
 Puan için `1–5`, `Bilinmiyor` veya `Kapsam dışı` kullan.
 
-| Boyut | Puan | Güven | Bulgu ID | Gerekçe veya açık soru |
-| --- | --- | --- | --- | --- |
-| Problem ve hedef kullanıcı | — | — | — | — |
-| İlk değer ve onboarding | — | — | — | — |
-| Ana iş akışı ve hata yönetimi | — | — | — | — |
-| Ayrışma ve alternatifler | — | — | — | — |
-| Teknik kalite ve entegrasyon | — | — | — | — |
-| Güven ve veri kontrolü | — | — | — | — |
-| Fiyat ve kullanım maliyeti | — | — | — | — |
+| Boyut                         | Puan | Güven | Bulgu ID | Gerekçe veya açık soru |
+| ----------------------------- | ---- | ----- | -------- | ---------------------- |
+| Problem ve hedef kullanıcı    | —    | —     | —        | —                      |
+| İlk değer ve onboarding       | —    | —     | —        | —                      |
+| Ana iş akışı ve hata yönetimi | —    | —     | —        | —                      |
+| Ayrışma ve alternatifler      | —    | —     | —        | —                      |
+| Teknik kalite ve entegrasyon  | —    | —     | —        | —                      |
+| Güven ve veri kontrolü        | —    | —     | —        | —                      |
+| Fiyat ve kullanım maliyeti    | —    | —     | —        | —                      |
 
 ## Uygulanabilir dersler
 
 | Fikir | Dayandığı bulgu | Önerilen uygulama | Efor / belirsizlik | Doğrulama deneyi |
-| --- | --- | --- | --- | --- |
-| — | — | — | — | — |
+| ----- | --------------- | ----------------- | ------------------ | ---------------- |
+| —     | —               | —                 | —                  | —                |
 
 ## Açık sorular ve kapsam sınırı
 

@@ -1,4 +1,4 @@
-> **Bu fork’u ürün incelemeleri için kullan.** Ürünün hedef kullanıcısını, ana akışını, teknik mekanizmasını ve alternatiflerini kanıtlarıyla değerlendir. [Türkçe başlangıç kılavuzu](research/README.md) · [Değerlendirme rubriği](research/RUBRIC.md)
+> **Bu fork’u ürün incelemeleri için kullan.** Ürünün hedef kullanıcısını, ana akışını, teknik mekanizmasını ve alternatiflerini kanıtlarıyla değerlendir. Türkçe başlangıç kılavuzu `research/README.md`, değerlendirme rubriği `research/RUBRIC.md` dosyasında.
 >
 > Yerel REA kurulumu için `python3 research/rea.py install` çalıştır. Sonraki sohbetlerde bir ürün bağlantısı ve cevaplanmasını istediğin sorularla başlayabilirsin.
 
